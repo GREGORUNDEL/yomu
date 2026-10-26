@@ -154,8 +154,9 @@ async function syncVocab() {
 }
 
 /* ================= export ================= */
-function exportVocab(kind) {
-  const rows = vocabList().map((v) => {
+function exportVocab(kind, keys) {
+  const src = keys ? vocabList().filter((v) => keys.has(vkey(v.b, v.br))) : vocabList();
+  const rows = src.map((v) => {
     const t = S.index.find((x) => x.id === v.textId);
     return [v.b, v.br || "", v.g || "", v.s || "", t ? t.ja + (t.ru ? " — " + t.ru : "") : ""];
   });
