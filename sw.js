@@ -1,5 +1,5 @@
 // yomu — service worker. Network first (updates show on the next launch), cache when offline.
-const CACHE = "yomu-shell-v2";
+const CACHE = "yomu-shell-v3";
 const SHELL = ["./", "./index.html", "./css/app.css", "./js/core.js", "./js/lists.js", "./js/reader.js", "./js/boot.js", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
