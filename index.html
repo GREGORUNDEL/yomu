@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Yomu</title>
+<meta name="description" content="Интерактивная читалка японских текстов.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Yomu">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F3EAD7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1611" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="topfade" aria-hidden="true"></div>
+
+<!-- Тексты | Словарь -->
+<main id="lists">
+  <header class="seg-wrap">
+    <div class="seg glass" role="tablist" id="seg">
+      <span class="seg-thumb" aria-hidden="true"></span>
+      <button role="tab" data-tab="texts">Тексты</button>
+      <button role="tab" data-tab="vocab">Словарь</button>
+    </div>
+  </header>
+  <div id="pages">
+    <section class="page" id="pageTexts" data-tab="texts"></section>
+    <section class="page" id="pageVocab" data-tab="vocab" hidden></section>
+  </div>
+  <button class="fab glass" id="fab" aria-label="Настройки"></button>
+</main>
+
+<!-- читалка: только текст -->
+<div id="reader" hidden>
+  <div class="reader-scroll" id="readerScroll"><article class="text" id="text" lang="ja"></article></div>
+</div>
+
+<div class="pop glass" id="pop" hidden role="dialog" aria-label="Слово"></div>
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet glass" id="sheet" hidden role="dialog"><div class="grab" aria-hidden="true"></div><div class="sheet-body" id="sheetBody"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/core.js"></script>
+<script src="js/lists.js"></script>
+<script src="js/reader.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>
