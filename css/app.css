@@ -143,7 +143,7 @@ svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .text-end{text-align:center;color:var(--ink-faint);font-size:14px;line-height:20px;font-family:var(--ui);margin-top:2.5em;letter-spacing:.3em;padding-bottom:28vh}
 
 /* 縦書き: columns right to left, the page scrolls sideways */
-[data-dir=v] .reader-scroll{overflow-x:auto;overflow-y:hidden}
+[data-dir=v] .reader-scroll{overflow-x:auto;overflow-y:hidden;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl}
 [data-dir=v] .text{writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;height:100%;max-width:none;margin:0;text-align:justify;
   padding:calc(var(--safe-top) + 42px) max(26px,env(safe-area-inset-right,0px)) calc(var(--safe-bot) + 26px) 44px}
 [data-dir=v] .text p{margin:0 0 0 1.1em}

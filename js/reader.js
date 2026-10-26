@@ -9,6 +9,8 @@ function rubyHtml(t) {
   if (!t.fu) return tcy(esc(t.t));
   return t.fu.map(([seg, r]) => r ? `<ruby>${esc(seg)}<rt>${esc(r)}</rt></ruby>` : tcy(esc(seg))).join("");
 }
+/* a line break from the original (picture books break phrases without punctuation) is a "\n" punctuation token */
+const punctHtml = (t) => t.t === "\n" ? "<br>" : tcy(esc(t.t));
 const baseOf = (t) => t.b || t.t;
 function readingOf(t) {
   if (t.br) return t.br;
@@ -21,7 +23,7 @@ function renderText(doc) {
   const html = (doc.paragraphs || []).map((p) => "<p>" + p.map((se) => {
     R.sentences[se.id] = se;
     return `<span class="sen" data-s="${esc(se.id)}">` + se.tokens.map((t, i) =>
-      t.punct ? tcy(esc(t.t)) : `<span class="w" data-i="${i}">${rubyHtml(t)}</span>`).join("") + "</span>";
+      t.punct ? punctHtml(t) : `<span class="w" data-i="${i}">${rubyHtml(t)}</span>`).join("") + "</span>";
   }).join("") + "</p>").join("") + '<div class="text-end" aria-hidden="true">終</div>';
   $("text").innerHTML = html;
 }
@@ -131,7 +133,7 @@ function selectWord(w) {
 }
 const addBtn = (b, br) => inVocab(b, br) ? `<button class="btn done" disabled>${svg("check")}В словаре</button>` : `<button class="btn fill" id="popAdd">${svg("plus")}В словарь</button>`;
 function addWord(e, se) {
-  const s = se.tokens.map((t) => t.t).join("");
+  const s = se.tokens.map((t) => t.t === "\n" ? "" : t.t).join("");
   if (addVocab({ b: e.b, br: e.br, g: e.g, s, textId: R.id, sentenceId: se.id })) toast("Добавлено в словарь");
 }
 /* The popover never covers the selected word. Horizontal text: it opens under the word; if there is no room
@@ -202,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function openBreakdown(se) {
   const keep = R.sel && R.sel.sen; $("pop").classList.remove("on"); setTimeout(() => { $("pop").hidden = true; }, 160);
   if (R.sel) R.sel.w.classList.remove("sel");
-  const sentence = se.tokens.map((t) => t.punct ? esc(t.t) : rubyHtml(t)).join("");
+  const sentence = se.tokens.map((t) => t.punct ? punctHtml(t) : rubyHtml(t)).join("");
   const parts = (se.parts || []).map((p, i) => `<div class="br-part"><div class="br-j ja" lang="ja">${esc(p.j)}</div>
       ${p.b ? (inVocab(p.b, p.br) ? `<span class="br-add done" aria-label="В словаре">${svg("check")}</span>` : `<button class="br-add" data-i="${i}" aria-label="В словарь">${svg("plus")}</button>`) : "<span></span>"}
       <div class="br-e">${esc(p.e)}${p.b ? `<br><span class="ja" lang="ja" style="color:var(--ink)">${esc(p.b)}</span>${p.br && p.br !== p.b ? ` <span class="ja" lang="ja">${esc(p.br)}</span>` : ""} — ${esc(p.g || "")}` : ""}</div></div>`).join("");
