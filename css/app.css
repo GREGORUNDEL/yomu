@@ -119,7 +119,7 @@ svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .w{border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
 .sen.hl{background:var(--sen-hl);-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:4px}
 .w.sel{background:var(--word-sel)}
-.text-end{text-align:center;color:var(--ink-faint);font-size:14px;line-height:20px;font-family:var(--ui);margin-top:2.5em;letter-spacing:.3em}
+.text-end{text-align:center;color:var(--ink-faint);font-size:14px;line-height:20px;font-family:var(--ui);margin-top:2.5em;letter-spacing:.3em;padding-bottom:28vh}
 
 /* 縦書き: columns right to left, the page scrolls sideways */
 [data-dir=v] .reader-scroll{overflow-x:auto;overflow-y:hidden}
@@ -127,7 +127,7 @@ svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stro
   padding:calc(var(--safe-top) + 42px) max(26px,env(safe-area-inset-right,0px)) calc(var(--safe-bot) + 26px) 44px}
 [data-dir=v] .text p{margin:0 0 0 1.1em}
 [data-dir=v] .tcy{text-combine-upright:all;-webkit-text-combine:horizontal}
-[data-dir=v] .text-end{margin:0 2.5em 0 0;letter-spacing:.3em}
+[data-dir=v] .text-end{margin:0 2.5em 0 0;letter-spacing:.3em;padding:0 0 0 38vw}
 
 /* word popover */
 .pop{position:fixed;z-index:50;width:min(300px,calc(100vw - 24px));border-radius:20px;padding:14px 16px 14px;

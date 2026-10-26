@@ -106,6 +106,8 @@ def run(dark=False):
         pop = page.inner_text("#pop")
         check(page.is_visible("#pop") and "歩く" in pop and "あるく" in pop and "ходить" in pop, "окошко слова: словарная форма, чтение, перевод")
         check(page.locator(".sen.hl").count() == 1, "предложение подсвечено")
+        ov = page.evaluate("""(()=>{const p=$('pop').getBoundingClientRect();return [...document.querySelector('.w.sel').getClientRects()].some(r=>r.left<p.right&&r.right>p.left&&r.top<p.bottom&&r.bottom>p.top)})()""")
+        check(not ov, "окошко не закрывает выбранное слово")
         shot("04-word")
         page.click("#popAdd"); page.wait_for_timeout(1700)
         added = [x for pth, doc in puts if pth == "vocab.json" for x in doc if x["b"] == "歩く"]
@@ -150,6 +152,8 @@ def run(dark=False):
         page.locator(".sen[data-s=s1] .w[data-i=\"4\"]").click(); page.wait_for_timeout(350)
         check(page.is_visible("#pop") and "でございます" in page.inner_text("#pop"), "окошко слова в 縦書き")
         check(page.evaluate("$('pop').getBoundingClientRect().top") >= 59 + 40, "окошко не заходит под системное размытие")
+        ov = page.evaluate("""(()=>{const p=$('pop').getBoundingClientRect();return [...document.querySelector('.w.sel').getClientRects()].some(r=>r.left<p.right&&r.right>p.left&&r.top<p.bottom&&r.bottom>p.top)})()""")
+        check(not ov, "в 縦書き окошко не закрывает слово")
         shot("10-vertical-word")
         page.evaluate("closePop()"); page.wait_for_timeout(250)
         swipe(6, 500, 330, 510)

@@ -63,7 +63,8 @@ const under = () => [$("pages"), document.querySelector(".seg-wrap"), $("fab")];
 /* ================= position & progress ================= */
 const vertical = () => P.dir === "v";
 function scrollFrac() {
-  const sc = $("readerScroll");
+  const sc = $("readerScroll"), end = $("text").querySelector(".text-end");
+  if (end) { const r = end.getBoundingClientRect(); if (r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight) return 1; }
   if (vertical()) { const m = sc.scrollWidth - sc.clientWidth; return m > 0 ? Math.abs(sc.scrollLeft) / m : 1; }
   const m = sc.scrollHeight - sc.clientHeight; return m > 0 ? sc.scrollTop / m : 1;
 }
@@ -88,7 +89,7 @@ function restorePos(sid, flash) {
   let t = null;
   document.addEventListener("DOMContentLoaded", () => {
     $("readerScroll").addEventListener("scroll", () => {
-      if (R.sel && Math.abs(scrollDelta()) > 6) closePop();
+      if (R.sel && !R.lock && Math.abs(scrollDelta()) > 6) closePop();
       clearTimeout(t); t = setTimeout(saveReaderPos, 400);
     }, { passive: true });
   });
@@ -125,7 +126,6 @@ function selectWord(w) {
     <div class="pop-act">${particle ? "" : addBtn(b, br)}<button class="btn" id="popParse">${svg("parse")}Разбор</button></div>`;
   pop.hidden = false; pop.classList.remove("on");
   placePop(w);
-  requestAnimationFrame(() => pop.classList.add("on"));
   const ab = $("popAdd"); if (ab) ab.onclick = () => { addWord({ b, br, g: t.g }, se); ab.outerHTML = addBtn(b, br); };
   $("popParse").onclick = () => openBreakdown(se);
 }
@@ -134,22 +134,51 @@ function addWord(e, se) {
   const s = se.tokens.map((t) => t.t).join("");
   if (addVocab({ b: e.b, br: e.br, g: e.g, s, textId: R.id, sentenceId: se.id })) toast("Добавлено в словарь");
 }
-function placePop(w) {
-  const pop = $("pop"), rects = w.getClientRects(), r = rects[0] || w.getBoundingClientRect();
-  const vw = window.innerWidth, vh = window.innerHeight, pw = pop.offsetWidth, ph = pop.offsetHeight, M = 12;
-  const safeTop = blurZone() + 6;
-  let x, y;
+/* The popover never covers the selected word. Horizontal text: it opens under the word; if there is no room
+   below, the text scrolls up to make room (above the word only at the very end of the text). Vertical text: it opens
+   to the left of the column; if there is no room, the text scrolls sideways (to the right of the column only at the end). */
+function layoutPop(w, noScroll) {
+  const pop = $("pop"), sc = $("readerScroll"), rects = [...w.getClientRects()];
+  if (!rects.length) rects.push(w.getBoundingClientRect());
+  const box = { left: Math.min(...rects.map((q) => q.left)), right: Math.max(...rects.map((q) => q.right)), top: Math.min(...rects.map((q) => q.top)), bottom: Math.max(...rects.map((q) => q.bottom)) };
+  const vw = window.innerWidth, vh = window.innerHeight, pw = pop.offsetWidth, ph = pop.offsetHeight, M = 12, G = 10, safeTop = blurZone() + 6;
   if (vertical()) {
-    const all = [...rects], left = Math.min(...all.map((q) => q.left)), right = Math.max(...all.map((q) => q.right));
-    x = left - 10 - pw; if (x < M) x = right + 10; if (x + pw > vw - M) x = Math.max(M, vw - pw - M);
-    y = Math.min(Math.max(r.top + r.height / 2 - ph / 2, safeTop), vh - ph - M);
-  } else {
-    const last = rects[rects.length - 1] || r;
-    y = last.bottom + 10; if (y + ph > vh - M) y = r.top - 10 - ph; if (y < safeTop) y = Math.min(vh - ph - M, last.bottom + 10);
-    x = Math.min(Math.max(r.left + r.width / 2 - pw / 2, M), vw - pw - M);
+    const y = Math.min(Math.max((box.top + box.bottom) / 2 - ph / 2, safeTop), vh - ph - M);
+    let x = box.left - G - pw;
+    if (x >= M) return { x, y, origin: "right center" };
+    const need = M - x, room = (sc.scrollWidth - sc.clientWidth) - Math.abs(sc.scrollLeft);
+    if (!noScroll && room >= need) return { scroll: { left: -need } };
+    if (box.right + G + pw <= vw - M) return { x: box.right + G, y, origin: "left center" };
+    if (!noScroll && room > 0) return { scroll: { left: -room } };
+    // no room on either side of the column: above or below the word instead, across the neighbouring columns
+    const cx = Math.min(Math.max((box.left + box.right) / 2 - pw / 2, M), vw - pw - M);
+    if (box.top - G - ph >= safeTop) return { x: cx, y: box.top - G - ph, origin: "center bottom" };
+    if (box.bottom + G + ph <= vh - M) return { x: cx, y: box.bottom + G, origin: "center top" };
+    return { x: M, y, origin: "right center" };
   }
-  pop.style.left = Math.round(x) + "px"; pop.style.top = Math.round(y) + "px";
-  pop.style.transformOrigin = vertical() ? "right center" : (y > r.top ? "center top" : "center bottom");
+  const x = Math.min(Math.max((box.left + box.right) / 2 - pw / 2, M), vw - pw - M);
+  let y = box.bottom + G;
+  if (y + ph <= vh - M) return { x, y, origin: "center top" };
+  const need = y + ph - (vh - M), room = sc.scrollHeight - sc.clientHeight - sc.scrollTop;
+  if (!noScroll && room >= need) return { scroll: { top: need } };
+  if (box.top - G - ph >= safeTop) return { x, y: box.top - G - ph, origin: "center bottom" };
+  if (!noScroll && room > 0) return { scroll: { top: room } };
+  return { x, y: vh - ph - M, origin: "center top" };
+}
+function placePop(w) {
+  const pop = $("pop"), sc = $("readerScroll"), plan = layoutPop(w);
+  const show = (p) => {
+    pop.style.left = Math.round(p.x) + "px"; pop.style.top = Math.round(p.y) + "px"; pop.style.transformOrigin = p.origin;
+    requestAnimationFrame(() => pop.classList.add("on"));
+  };
+  if (!plan.scroll) return show(plan);
+  R.lock = true;
+  sc.scrollBy({ ...plan.scroll, behavior: reduceMotion() ? "auto" : "smooth" });
+  setTimeout(() => {
+    R.lock = false; if (!R.sel || R.sel.w !== w) return;
+    scroll0 = vertical() ? sc.scrollLeft : sc.scrollTop;
+    show(layoutPop(w, true));
+  }, reduceMotion() ? 30 : 380);
 }
 function clearSel() {
   if (!R.sel) return; R.sel.w.classList.remove("sel"); R.sel.sen.classList.remove("hl"); R.sel = null;
