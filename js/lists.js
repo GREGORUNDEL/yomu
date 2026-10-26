@@ -198,7 +198,7 @@ function openSettings() {
       <div class="set-group">
         <div class="set-row"><span class="lbl"><span class="dot ${st[0]}"></span>${esc(st[1])}<span class="sub">${esc(a ? a.repo : DEFAULT_REPO)}</span></span></div>
         ${a ? `<button class="set-row link" id="gRefresh"><span class="lbl">Обновить сейчас</span></button><button class="set-row danger" id="gForget"><span class="lbl">Удалить токен с устройства</span></button>`
-            : `<div class="form"><input class="field" id="gTok" type="password" placeholder="Токен GitHub (github_pat_…)" autocomplete="off" autocapitalize="off" spellcheck="false">
+            : `<div class="form"><input class="field masked" id="gTok" type="text" name="yomu-token" placeholder="Токен GitHub (github_pat_…)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true">
                <input class="field" id="gRepo" value="${esc(DEFAULT_REPO)}" autocapitalize="off" spellcheck="false" aria-label="Репозиторий">
                <button class="btn fill" id="gConnect">Подключить</button><div class="err" id="gErr" hidden></div></div>`}
       </div>
@@ -226,7 +226,7 @@ function openSettings() {
     try {
       const r = await fetch(`https://api.github.com/repos/${repo}`, { cache: "no-store", headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" } });
       if (r.status === 401) { $("gConnect").disabled = false; return fail("GitHub не принял токен. Проверь, что он скопирован целиком и не истёк."); }
-      if (!r.ok) { $("gConnect").disabled = false; return fail("Токен работает, но не видит " + repo + "."); }
+      if (!r.ok) { $("gConnect").disabled = false; return fail(`Токен …${tok.slice(-4)} работает, но не видит ${repo} (ошибка ${r.status}). Проверь, что вставлен именно новый токен, а не токен Копилки.`); }
     } catch (e) { $("gConnect").disabled = false; return fail("Не удалось связаться с GitHub. Проверь интернет."); }
     setAuth({ token: tok, repo }); await refreshAll(); draw(); renderLists();
     toast(S.sync === "ok" ? "Подключено" : "Подключено, но список не обновился");
