@@ -98,6 +98,17 @@ let scroll0 = 0;
 function scrollDelta() { const sc = $("readerScroll"); return (vertical() ? sc.scrollLeft : sc.scrollTop) - scroll0; }
 
 /* ================= word popover ================= */
+/* iOS home-screen apps blur the strip under the status bar — about 35pt below the safe-area inset
+   (measured on iPhone 14 Pro Max). Nothing interactive goes there. --safe-top is a CSS max(), so it is measured, not parsed. */
+let blurPx = null;
+function blurZone() {
+  if (blurPx == null) {
+    const d = document.createElement("div"); d.style.cssText = "position:fixed;top:0;left:0;width:1px;height:var(--safe-top);visibility:hidden;pointer-events:none";
+    document.body.appendChild(d); blurPx = d.offsetHeight + 40; d.remove();
+  }
+  return blurPx;
+}
+window.addEventListener("resize", () => { blurPx = null; });
 function selectWord(w) {
   const sen = w.closest(".sen"), se = R.sentences[sen.dataset.s], t = se && se.tokens[+w.dataset.i]; if (!t) return;
   if (R.sel && R.sel.w === w) { closePop(); return; }
@@ -126,8 +137,7 @@ function addWord(e, se) {
 function placePop(w) {
   const pop = $("pop"), rects = w.getClientRects(), r = rects[0] || w.getBoundingClientRect();
   const vw = window.innerWidth, vh = window.innerHeight, pw = pop.offsetWidth, ph = pop.offsetHeight, M = 12;
-  const top0 = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--safe-top")) || 0;
-  const safeTop = Math.max(top0, 20) + 8;
+  const safeTop = blurZone() + 6;
   let x, y;
   if (vertical()) {
     const all = [...rects], left = Math.min(...all.map((q) => q.left)), right = Math.max(...all.map((q) => q.right));
@@ -151,7 +161,10 @@ function closePop() {
 document.addEventListener("DOMContentLoaded", () => {
   $("text").addEventListener("click", (e) => {
     if (edgeSwiped) return;
-    const w = e.target.closest(".w"); if (w) selectWord(w); else closePop();
+    const w = e.target.closest(".w");
+    // words passing under the system blur at the top can't be read there, so they don't open the popover
+    if (w && (w.getClientRects()[0] || w.getBoundingClientRect()).top < blurZone()) { closePop(); return; }
+    if (w) selectWord(w); else closePop();
   });
   document.addEventListener("click", (e) => { if (R.sel && e.target.isConnected && !e.target.closest("#pop,#text,#sheet,#scrim")) closePop(); });
 });

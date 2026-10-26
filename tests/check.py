@@ -120,6 +120,11 @@ def run(dark=False):
         page.click("#scrim", position={"x": 200, "y": 120}); page.wait_for_timeout(450)
         check(not page.is_visible("#sheet"), "панель закрывается")
 
+        page.evaluate("document.getElementById('readerScroll').scrollTop=60"); page.wait_for_timeout(300)
+        hidden_w = page.evaluate("(()=>{const z=blurZone();return [...document.querySelectorAll('#text .w')].findIndex(w=>{const r=w.getClientRects()[0];return r&&r.top>10&&r.top<z-8})})()")
+        if hidden_w >= 0:
+            page.locator("#text .w").nth(hidden_w).click(force=True); page.wait_for_timeout(300)
+            check(not page.is_visible("#pop"), "слово под размытием не открывает окошко")
         page.evaluate("document.getElementById('readerScroll').scrollTop=300"); page.wait_for_timeout(600)
         swipe(200, 500, 420, 505)
         check(page.is_visible("#reader"), "свайп не от края не закрывает читалку")
@@ -144,6 +149,7 @@ def run(dark=False):
         shot("09-vertical")
         page.locator(".sen[data-s=s1] .w[data-i=\"4\"]").click(); page.wait_for_timeout(350)
         check(page.is_visible("#pop") and "でございます" in page.inner_text("#pop"), "окошко слова в 縦書き")
+        check(page.evaluate("$('pop').getBoundingClientRect().top") >= 59 + 40, "окошко не заходит под системное размытие")
         shot("10-vertical-word")
         page.evaluate("closePop()"); page.wait_for_timeout(250)
         swipe(6, 500, 330, 510)
